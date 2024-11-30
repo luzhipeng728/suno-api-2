@@ -10,6 +10,7 @@ from utils import (
     get_lyrics,
     concat_music,
     get_feeds,
+    get_all_feeds,
 )
 
 
@@ -76,6 +77,15 @@ async def fetch_feed(aid: str, token: str = Depends(get_token)):
         raise HTTPException(
             detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@app.get("/feed/all")
+async def fetch_all_feeds(page: int = 0, token: str = Depends(get_token)):
+    try:
+        resp = await get_all_feeds(token, page)
+        return resp
+    except Exception as e:
+        raise HTTPException(detail=str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @app.post("/generate/lyrics/")
