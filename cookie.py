@@ -125,9 +125,9 @@ def update_token(suno_cookie: SunoCookie):
     headers = {"cookie": suno_cookie.get_cookie()}
     headers.update(COMMON_HEADERS)
     session_id = suno_cookie.get_session_id()
-    print("=" * 100)
-    print(session_id)
-    print("=" * 100)
+    # print("=" * 100)
+    # print(session_id)
+    # print("=" * 100)
     url = f"https://clerk.suno.com/v1/client/sessions/{session_id}/touch?__clerk_api_version=2021-02-05&_clerk_js_version={clerk_js_version}"
     resp = requests.post(
         url=url,
@@ -138,10 +138,10 @@ def update_token(suno_cookie: SunoCookie):
     resp_headers = dict(resp.headers)
     set_cookie = resp_headers.get("Set-Cookie")
     suno_cookie.load_cookie(set_cookie)
-    print("=" * 100)
-    # print(resp.json())
-    print(json.dumps(resp.json(), indent=4))
-    print("=" * 100)
+    # print("=" * 100)
+    # # print(resp.json())
+    # print(json.dumps(resp.json(), indent=4))
+    # print("=" * 100)
     token = resp.json()['response']["last_active_token"]["jwt"]
     if not token:
         logger.error(f"update token failed, response -> {resp.json()}")
@@ -163,9 +163,9 @@ def get_new_token(suno_cookie: SunoCookie):
             data="organization_id=",
             timeout=5
         )
-        print("=" * 100)
-        print(resp.text)
-        print("=" * 100)
+        # print("=" * 100)
+        # print(resp.text)
+        # print("=" * 100)
         token = resp.json()['jwt']
         if token:
             suno_cookie.set_check_token(True)
