@@ -163,6 +163,9 @@ def get_new_token(suno_cookie: SunoCookie):
             data="organization_id=",
             timeout=5
         )
+        print("=" * 100)
+        print(resp.text)
+        print("=" * 100)
         token = resp.json()['jwt']
         if token:
             suno_cookie.set_check_token(True)
