@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 
 import schemas
-from deps import get_token
+from deps import get_token, get_token_new
 from utils import (
     generate_lyrics,
     generate_music,
@@ -46,7 +46,7 @@ async def generate(
 
 @app.post("/generate/description-mode")
 async def generate_with_song_description(
-    data: schemas.DescriptionModeGenerateParam, token: str = Depends(get_token)
+    data: schemas.DescriptionModeGenerateParam, token: str = Depends(get_token_new)
 ):
     try:
         resp = await generate_music(data.dict(), token)

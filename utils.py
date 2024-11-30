@@ -47,8 +47,8 @@ async def get_feeds(ids, token):
     headers = {"Authorization": f"Bearer {token}"}
     # 如果ids是一个可以转成int的值，则直接转成int
     if isinstance(ids, str) and ids.isdigit():
-        ids = int(ids)
         api_url = f"{BASE_URL}/api/feed/v2?page={ids}"
+        print(api_url)
     else:
         api_url = f"{BASE_URL}/api/feed/v2?ids={ids}"
     response = await fetch(api_url, headers, method="GET")

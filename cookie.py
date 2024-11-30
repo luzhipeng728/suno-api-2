@@ -15,6 +15,7 @@ class SunoCookie:
         self.token = None
         self.expire_at = None
         self.email = None
+        self.check_token = None
 
     def load_cookie(self, cookie_str):
         self.cookie.load(cookie_str)
@@ -30,6 +31,40 @@ class SunoCookie:
 
     def get_token(self):
         return self.token
+    
+    def check(self):
+        """检查token是否有效"""
+        try:
+            headers = {
+                'accept': '*/*',
+                'accept-language': 'zh-CN,zh;q=0.9',
+                'affiliate-id': 'undefined',
+                'authorization': f'Bearer {self.check_token}',
+                'content-type': 'text/plain;charset=UTF-8',
+                'device-id': '"8c39237a-a1f5-415d-bcca-b017e3588dba"',
+                'origin': 'https://suno.com',
+                'priority': 'u=1, i',
+                'referer': 'https://suno.com/',
+                'sec-ch-ua': '"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+                'sec-ch-ua-mobile': '?0',
+                'sec-ch-ua-platform': '"macOS"',
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-site',
+                'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+            }
+            
+            response = requests.post(
+                'https://studio-api.prod.suno.com/api/c/check',
+                headers=headers,
+                json={"ctype": "generation"},
+                timeout=5
+            )
+            
+            return response.status_code == 200
+        except Exception as e:
+            logger.error(f"Token check failed: {e}")
+            return False
 
     def set_token(self, token: str):
         self.token = token
@@ -45,6 +80,12 @@ class SunoCookie:
 
     def get_email(self):
         return self.email
+    
+    def set_check_token(self, check_token: bool):
+        self.check_token = check_token
+
+    def get_check_token(self):
+        return self.check_token
 
 
 clerk_js_version = "5.35.1"
@@ -108,6 +149,30 @@ def update_token(suno_cookie: SunoCookie):
     suno_cookie.set_token(token)
 
 
+def get_new_token(suno_cookie: SunoCookie):
+    """获取新的token"""
+    headers = {"cookie": suno_cookie.get_cookie()}
+    headers.update(COMMON_HEADERS)
+    session_id = suno_cookie.get_session_id()
+    url = f"https://clerk.suno.com/v1/client/sessions/{session_id}/tokens?__clerk_api_version=2021-02-05&_clerk_js_version={clerk_js_version}"
+    
+    try:
+        resp = requests.post(
+            url=url,
+            headers=headers,
+            data="organization_id=",
+            timeout=5
+        )
+        token = resp.json()['jwt']
+        if token:
+            suno_cookie.set_check_token(True)
+            logger.info(f"Successfully refreshed token for {suno_cookie.get_email()}")
+            return True
+    except Exception as e:
+        logger.error(f"Failed to get new token: {e}")
+        return False
+
+
 def keep_alive(suno_cookie: SunoCookie):
     interval = suno_cookie.get_expire_at() - int(time.time() * 1000)
     if interval < 0:
@@ -120,6 +185,8 @@ def keep_alive(suno_cookie: SunoCookie):
         )
     try:
         update_token(suno_cookie)
+        # 每分钟刷新一次token
+        get_new_token(suno_cookie)
     except Exception as e:
         logger.error(
             f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} *** keep_alive error -> {e} ***"
