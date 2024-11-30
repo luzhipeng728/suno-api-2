@@ -26,9 +26,14 @@ async def fetch(url, headers=None, data=None, method="POST"):
             async with session.request(
                 method=method, url=url, data=data, headers=headers
             ) as resp:
+                print("🔥" * 100)
+                print(url)
+                print(await resp.text())
+                print("🔥" * 100)
                 return await resp.json()
         except Exception as e:
-            raise Exception(resp.text)
+            logger.error(f"请求失败: {str(e)}")
+            raise Exception(f"请求失败: {str(e)}")
 
 
 async def get_feed(ids, token):
@@ -40,7 +45,12 @@ async def get_feed(ids, token):
 
 async def get_feeds(ids, token):
     headers = {"Authorization": f"Bearer {token}"}
-    api_url = f"{BASE_URL}/api/feed/v2?ids={ids}"
+    # 如果ids是一个可以转成int的值，则直接转成int
+    if isinstance(ids, str) and ids.isdigit():
+        ids = int(ids)
+        api_url = f"{BASE_URL}/api/feed/v2?page={ids}"
+    else:
+        api_url = f"{BASE_URL}/api/feed/v2?ids={ids}"
     response = await fetch(api_url, headers, method="GET")
     clips = response.get("clips")
     if clips:
@@ -51,7 +61,7 @@ async def get_feeds(ids, token):
 async def get_all_feeds(token, page=0):
     headers = {"Authorization": f"Bearer {token}"}
     api_url = f"{BASE_URL}/api/feed/v2?page={page}"
-    print(api_url, token)
+    logger.info(api_url, token)
     response = await fetch(api_url, headers, method="GET")
     return response
 
