@@ -51,6 +51,7 @@ async def get_feeds(ids, token):
 async def get_all_feeds(token, page=0):
     headers = {"Authorization": f"Bearer {token}"}
     api_url = f"{BASE_URL}/api/feed/v2?page={page}"
+    print(api_url, token)
     response = await fetch(api_url, headers, method="GET")
     return response
 
