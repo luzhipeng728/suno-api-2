@@ -138,10 +138,6 @@ def update_token(suno_cookie: SunoCookie):
     resp_headers = dict(resp.headers)
     set_cookie = resp_headers.get("Set-Cookie")
     suno_cookie.load_cookie(set_cookie)
-    # print("=" * 100)
-    # # print(resp.json())
-    # print(json.dumps(resp.json(), indent=4))
-    # print("=" * 100)
     token = resp.json()['response']["last_active_token"]["jwt"]
     if not token:
         logger.error(f"update token failed, response -> {resp.json()}")
@@ -188,8 +184,6 @@ def keep_alive(suno_cookie: SunoCookie):
         )
     try:
         update_token(suno_cookie)
-        # 每分钟刷新一次token
-        get_new_token(suno_cookie)
     except Exception as e:
         logger.error(
             f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} *** keep_alive error -> {e} ***"

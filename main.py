@@ -1,5 +1,7 @@
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.interval import IntervalTrigger
 
 import schemas
 from deps import get_token, get_token_new
@@ -16,6 +18,25 @@ from utils import (
 
 app = FastAPI()
 
+# 创建调度器
+scheduler = AsyncIOScheduler()
+
+@app.on_event("startup")
+async def startup_event():
+    # 添加定时任务，每分钟执行一次
+    scheduler.add_job(
+        get_token_new,
+        trigger=IntervalTrigger(minutes=1),
+        id="refresh_token",
+        replace_existing=True
+    )
+    # 启动调度器
+    scheduler.start()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    # 关闭调度器
+    scheduler.shutdown()
 
 app.add_middleware(
     CORSMiddleware,

@@ -9,8 +9,6 @@ def get_token():
 
 def get_token_new():
     keep_alive(suno_auth)
-    update_token(suno_auth)
     suno_auth.check()
     token = suno_auth.get_token()
     yield token
-    
